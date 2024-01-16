@@ -17,7 +17,12 @@ To install CUDA-supported PyTorch: https://pytorch.org/get-started/locally/
 (12.1 in this example)
 
 ```cmd
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+Install dependencies from requirements.txt file:
+```cmd
+pip install -r requirements.txt
 ```
 
 ## Temporary
