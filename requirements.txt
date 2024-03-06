@@ -1,1 +1,3 @@
 easyocr
+cnocr[ort-gpu]
+openai
