@@ -5,7 +5,7 @@ The React app has been build ontop of [ofnullable](https://github.com/ofnullable
 
 ```shell
 # clone this repository
-$ git clone https://github.com/ofnullable/react-spa-template
+$ git clone https://github.com/AlphaeusNg/FYP
 
 # go into template directory
 $ cd react-spa-template
@@ -22,7 +22,7 @@ $ npm install
 $ npm start
 ```
 
-Run dev server on [http://localhost:8080](http://localhost:8080)
+Run dev server on [http://localhost:5000](http://localhost:5000)
 
 ### Build
 

@@ -11,43 +11,50 @@ const Input = styled('input')({
   display: 'none',
 });
 
-const UploadButtons = () => {
+const UploadButtons = ({ onUploadComplete }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileUpload = (event) => {
+    console.log('handleFileUpload function called');
     const file = event.target.files[0];
+    console.log('Selected file:', file);
+
     const formData = new FormData();
     formData.append('file', file);
 
-    axios.post('/upload', formData, {
+    axios.post('http://127.0.0.1:5000/upload', formData, {
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         setUploadProgress(percentCompleted);
       },
     })
       .then(response => {
-        console.log(response);
+        console.log('Upload successful. Response:', response.data);
+        // Call the onUploadComplete callback with the uploaded image data
+        onUploadComplete(response.data.imageUrl);
       })
       .catch(error => {
-        console.error(error);
+        console.error('Upload failed. Error:', error);
         // handle error here
       });
+
+      console.log('File upload finished'); // Log after axios.post request
   };
 
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
       <label htmlFor="contained-button-file">
-        <Input accept="image/*" id="contained-button-file" multiple type="file" onChange={handleFileUpload} />
+        <Input accept="image/*" id="contained-button-file" multiple={true} type="file" onChange={handleFileUpload} />
         <Button variant="contained" component="span">
           Upload
         </Button>
       </label>
-      <label htmlFor="icon-button-file">
+      {/* <label htmlFor="icon-button-file">
         <Input accept="image/*" id="icon-button-file" type="file" onChange={handleFileUpload} />
         <IconButton color="primary" aria-label="upload picture" component="span">
           <PhotoCamera />
         </IconButton>
-      </label>
+      </label> */}
 
       {/* Include the progress bar where you want it to appear */}
       <LinearProgress variant="determinate" value={uploadProgress} />

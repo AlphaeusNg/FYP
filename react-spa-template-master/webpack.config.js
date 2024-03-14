@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const fs = require('fs'); // Add this line to import fs module
 
 const prod = process.env.NODE_ENV === 'production';
 
@@ -28,6 +29,11 @@ const loaders = {
     loader: '@svgr/webpack',
   },
 };
+
+// Define paths for SSL certificate and key files
+// Navigate up two directories to reach the FYP directory, then enter settings_config
+const sslCertPath = resolve(__dirname, '../settings_config/localhost.crt');
+const sslKeyPath = resolve(__dirname, '../settings_config/localhost.key');
 
 module.exports = {
   mode: prod ? 'production' : 'development',
@@ -99,5 +105,15 @@ module.exports = {
     path: resolve(__dirname, 'dist'),
     filename: 'static/js/[name].[fullhash:8].js',
     chunkFilename: 'static/js/[name].[fullhash:8].chunk.js',
+  },
+  devServer: {
+    // Configure devServer options for HTTPS
+    https: {
+      key: fs.readFileSync(sslKeyPath),
+      cert: fs.readFileSync(sslCertPath),
+    },
+    host: 'localhost',
+    port: 3000,
+    open: true, // Optionally open browser when server starts
   },
 };

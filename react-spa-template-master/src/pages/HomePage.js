@@ -1,6 +1,6 @@
 import React from 'react';
 import { css } from '@emotion/react';
-import UploadButtons from '../components/UploadButtons';  // Adjust the import path based on your project structure
+import UploadButtons from '../components/UploadButtons';
 
 const HomePageStyle = css`
   h1 {
@@ -31,6 +31,13 @@ const HomePageStyle = css`
 `;
 
 const HomePage = () => {
+  // Callback function to handle uploaded image data
+  const handleUploadComplete = (imageUrl) => {
+    // Perform further processing with the uploaded image data (e.g., OCR, translation)
+    console.log('Uploaded image URL:', imageUrl);
+    // Add your logic for further processing here
+  };
+
   return (
     <div css={[HomePageStyle]}>
       <h1 className="title">Image Translator App</h1>
@@ -49,8 +56,8 @@ const HomePage = () => {
         </ol>
       </div>
 
-      {/* Include the UploadButtons component here */}
-      <UploadButtons />
+      {/* Pass the onUploadComplete callback to the UploadButtons component */}
+      <UploadButtons onUploadComplete={handleUploadComplete} />
 
       {/* Add more sections or components as needed */}
     </div>

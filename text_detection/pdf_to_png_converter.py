@@ -3,7 +3,7 @@ from PIL import Image
 import os
 
 
-def convert_image_path(image_path, output_folder):
+def convert_pdf_to_png(image_path, output_folder):
     # Check if the image path ends with .pdf
     if image_path.lower().endswith('.pdf'):
         # Run the pdf_to_png function
@@ -43,3 +43,11 @@ def pdf_to_png(pdf_path, output_folder):
     pdf_document.close()
 
     return png_image_paths
+
+
+if __name__ == "__main__":
+    current_directory = os.getcwd()
+    pdf_path = current_directory + "/images/Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma.pdf"
+    output_folder = current_directory + "/images/output/pdf_to_png"
+    os.makedirs(output_folder, exist_ok=True)
+    convert_pdf_to_png(pdf_path, output_folder)

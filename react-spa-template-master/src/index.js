@@ -6,7 +6,7 @@ import App from './App';
 import 'reset-css';
 import 'normalize.css';
 import './index.scss';
-export { default } from './UploadButtons';
+export { default } from './components/UploadButtons';
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(

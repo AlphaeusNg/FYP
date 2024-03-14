@@ -1,4 +1,4 @@
-from settings import *
+from language_translation.settings import *
 import openai
 
 # Set up your OpenAI GPT-3 API key
@@ -58,4 +58,5 @@ if __name__ == "__main__":
 # "こんにちは、私の名前は太郎です。" -> 你好，我叫太郎。/ สวัสดีครับ/ค่ะ ฉันชื่อโทโระครับ/ค่ะ. / Hello, my name is Taro.
 # "Helo, my neme is J0hn" -> 你好，我的名字是约翰。/ สวัสดีครับ/ค่ะ ฉันชื่อจอห์นครับ/ค่ะ. / Hello, my name is John.
 # "Helo, m neme is J0hn" -> 你好，我的名字是约翰。/ สวัสดีครับ/ค่ะ ฉันชื่อจอห์นครับ/ค่ะ. / Hello, my name is John.
+# "Helo, m nam is Jhn" -> 你好，我的名字是约翰。/ สวัสดีครับ/ค่ะ ฉันชื่อจอห์นครับ/ค่ะ. / Hello, my name is John.
 

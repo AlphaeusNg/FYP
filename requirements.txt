@@ -1,3 +1,4 @@
 easyocr
-cnocr[ort-gpu]
 openai
+flask
+flask_cors

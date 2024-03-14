@@ -1,19 +1,19 @@
 {
-  "name": "react-spa-template",
+  "name": "image-translation-app",
   "version": "0.2.0",
-  "description": "React Single Page App template without CRA",
+  "description": "An FYP project by Alphaeus Ng. An Image translation App",
   "main": "src/index.js",
-  "hompage": "https://ofnullable.github.io/react-spa-template",
-  "repository": "https://github.com/ofnullable/react-spa-template",
-  "author": "ofnullable <ofnullable@gmail.com>",
+  "hompage": "https://AlphaeusNg.github.io/FYP",
+  "repository": "https://github.com/AlphaeusNg/FYP",
+  "author": "AlphaeusNg <ang096@e.ntu.edu.sg>",
   "license": "MIT",
   "engines": {
     "node": ">=16",
     "npm": ">=9"
   },
   "bugs": {
-    "url": "http://github.com/ofnullable/react-spa-template/issues",
-    "email": "ofnullable@gmail.com"
+    "url": "https://github.com/AlphaeusNg/FYP/issues",
+    "email": "ang096@e.ntu.edu.sg"
   },
   "scripts": {
     "start": "NODE_ENV=development webpack serve --progress --port 3000",
