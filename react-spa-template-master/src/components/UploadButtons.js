@@ -12,15 +12,17 @@ const Input = styled('input')({
 });
 
 const UploadButtons = ({ onUploadComplete }) => {
+  debugger;
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileUpload = (event) => {
     console.log('handleFileUpload function called');
-    const file = event.target.files[0];
-    console.log('Selected file:', file);
+    const files = event.target.files;
 
     const formData = new FormData();
-    formData.append('file', file);
+    for (let i = 0; i < files.length; i++) {
+      formData.append('file', files[i]);  // Use the same key 'file' for each file
+    }
 
     axios.post('http://127.0.0.1:5000/upload', formData, {
       onUploadProgress: (progressEvent) => {

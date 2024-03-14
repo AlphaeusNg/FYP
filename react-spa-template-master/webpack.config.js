@@ -31,7 +31,6 @@ const loaders = {
 };
 
 // Define paths for SSL certificate and key files
-// Navigate up two directories to reach the FYP directory, then enter settings_config
 const sslCertPath = resolve(__dirname, '../settings_config/localhost.crt');
 const sslKeyPath = resolve(__dirname, '../settings_config/localhost.key');
 

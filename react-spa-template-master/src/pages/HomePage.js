@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import UploadButtons from '../components/UploadButtons';
 
@@ -31,11 +31,21 @@ const HomePageStyle = css`
 `;
 
 const HomePage = () => {
+  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default language: English
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // State to store uploaded image URL
+
   // Callback function to handle uploaded image data
   const handleUploadComplete = (imageUrl) => {
     // Perform further processing with the uploaded image data (e.g., OCR, translation)
     console.log('Uploaded image URL:', imageUrl);
+    // Update the state with the uploaded image URL
+    setUploadedImageUrl(imageUrl);
     // Add your logic for further processing here
+  };
+
+  // Function to handle language selection
+  const handleLanguageChange = (event) => {
+    setSelectedLanguage(event.target.value);
   };
 
   return (
@@ -46,18 +56,37 @@ const HomePage = () => {
         <p>Welcome to the Image Translator App! Upload an image, perform OCR, translate text, and view the results.</p>
       </div>
 
+      {/* Language Selection Dropdown */}
+      <div className="language-selection">
+        <label htmlFor="language-select">Select Language:</label>
+        <select id="language-select" value={selectedLanguage} onChange={handleLanguageChange}>
+          <option value="en">English</option>
+          <option value="ch">Chinese</option>
+          <option value="es">Spanish</option>
+          {/* Add more language options as needed */}
+        </select>
+      </div>
+
       <div className="instructions">
         <h2>Instructions:</h2>
         <ol>
-          <li>Click the "Upload Image" button to select an image.</li>
-          <li>Perform OCR to extract text from the image.</li>
-          <li>Translate the extracted text using the OpenAI API.</li>
-          <li>View the translated text overlaid on the image.</li>
+          <li>1. Click the "Upload Image" button to select an image.</li>
+          <li>2. Perform OCR to extract text from the image.</li>
+          <li>3. Translate the extracted text using the selected language.</li>
+          <li>4. View the translated text overlaid on the image.</li>
         </ol>
       </div>
 
-      {/* Pass the onUploadComplete callback to the UploadButtons component */}
-      <UploadButtons onUploadComplete={handleUploadComplete} />
+      {/* Display the uploaded image if available */}
+      {uploadedImageUrl && (
+        <div className="uploaded-image">
+          <h3>Uploaded Image:</h3>
+          <img src={uploadedImageUrl} alt="Uploaded" />
+        </div>
+      )}
+
+      {/* Pass the onUploadComplete callback and selectedLanguage to the UploadButtons component */}
+      <UploadButtons onUploadComplete={handleUploadComplete} selectedLanguage={selectedLanguage} />
 
       {/* Add more sections or components as needed */}
     </div>
