@@ -22,9 +22,29 @@ SYSTEM_CONTENT = """
 # Remove \n and extra spaces from the prompt
 SYSTEM_CONTENT = ' '.join(SYSTEM_CONTENT.split())
 
-def translate_language(ocr_text, language):
+# Define a function that maps language codes to their corresponding names
+def get_language_name(language_code: str) -> str:
+    language_mapping = {
+        "en": "English",
+        "ja": "Japanese",
+        "zh": "Chinese",
+        "th": "Thai",
+        "fr": "French",
+        "de": "German",
+        "es": "Spanish",
+        "it": "Italian",
+        "pt": "Portuguese",
+        # Add more language codes and names as needed
+    }
+    return language_mapping.get(language_code, "Unknown")
+
+
+
+def translate_language(text, language: str="en", still_in_development=False):
+    if still_in_development:
+        return "test 420"
     # Define the prompt for translation
-    prompt = f"Translate this sentence into {language}: {ocr_text}."
+    prompt = f"Translate this sentence into {language}: {text}."
 
     # Call the OpenAI API to get the translation
     response = openai.chat.completions.create(
@@ -43,15 +63,13 @@ def translate_language(ocr_text, language):
     # Extract and return the translated text from the response
     translated_text = response.choices[0].message.content
 
-    # First interaction with the model: translate this text
-    # Second interaction: refine the text to achieve the natural flow of a native speaker’s writing
     return translated_text
 
 
 if __name__ == "__main__":
     # Example usage
-    ocr_text = "Helo, my neme is J0hn"
-    translated_text = translate_language(ocr_text, "Chinese")
+    text = "Helo, my neme is J0hn"
+    translated_text = translate_language(text, "Chinese")
     print(translated_text)  # Output: "Hello, my name is Taro."
 
 # For FYP

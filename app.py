@@ -1,10 +1,9 @@
-from language_translation import translate
-from text_detection.pdf_to_png_converter import convert_pdf_to_png
-from text_detection import easy_ocr
+import os
+from image_modifier_class import image_object
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-import os
+from flask import send_file
 
 app = Flask(__name__)
 CORS(app, origins=['https://localhost:3000', 'https://127.0.0.1:3000'])
@@ -27,15 +26,25 @@ def upload_file():
             return jsonify({'error': 'No selected file'})
         if file:
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
             uploaded_files.append(filename)
 
-    # Process uploaded files here, e.g., perform OCR, translation, etc.
-    # Example: result = process_files(uploaded_files)
-    # Replace process_files with your own logic
+            image = image_object(file_path)
+            # Perform OCR on the uploaded file
+            ocr_results = perform_ocr(file_path)
 
-    # Return response with uploaded files or processed results
-    return jsonify({'uploaded_files': uploaded_files})
+            # Translate the OCR results to English
+            translated_results = perform_translation(ocr_results)
+
+            # Print or process translated results as needed
+            for translated_text in translated_results:
+                print(translated_text)
+            # Overlay translated text onto the image
+            overlayed_image = overlay_text(image_path, translated_text_data)
+
+               
+    return send_file(image_path, mimetype='image/jpeg')
 
 if __name__ == "__main__":
     app.run(debug=True, host="")

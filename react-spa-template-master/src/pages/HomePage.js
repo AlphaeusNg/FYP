@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import UploadButtons from '../components/UploadButtons';
+import FileUpload from '../components/FileUpload'; // Import the FileUpload component
 
 const HomePageStyle = css`
   h1 {
@@ -48,6 +49,12 @@ const HomePage = () => {
     setSelectedLanguage(event.target.value);
   };
 
+  // Function to handle selected files from FileUpload component
+  const handleFilesSelected = (files) => {
+    // Process the selected files here (e.g., recursively process images)
+    console.log('Selected files:', files);
+  };
+
   return (
     <div css={[HomePageStyle]}>
       <h1 className="title">Image Translator App</h1>
@@ -58,11 +65,17 @@ const HomePage = () => {
 
       {/* Language Selection Dropdown */}
       <div className="language-selection">
-        <label htmlFor="language-select">Select Language:</label>
+        <label htmlFor="language-select">Language to translate into: </label>
         <select id="language-select" value={selectedLanguage} onChange={handleLanguageChange}>
           <option value="en">English</option>
-          <option value="ch">Chinese</option>
+          <option value="zh">Chinese</option>
           <option value="es">Spanish</option>
+          <option value="ja">Japanese</option>
+          <option value="th">Thai</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
           {/* Add more language options as needed */}
         </select>
       </div>
@@ -84,6 +97,9 @@ const HomePage = () => {
           <img src={uploadedImageUrl} alt="Uploaded" />
         </div>
       )}
+
+      {/* Add the FileUpload component */}
+      {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
 
       {/* Pass the onUploadComplete callback and selectedLanguage to the UploadButtons component */}
       <UploadButtons onUploadComplete={handleUploadComplete} selectedLanguage={selectedLanguage} />

@@ -1,6 +1,5 @@
 from pathlib import Path
-from typing import Union
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import easyocr
 import torch
 
@@ -17,21 +16,56 @@ def draw_bounding_boxes(image_path, bounding_boxes, output_path):
     image.save(output_path)
 
 
-def text_inference(image_path: Union[Path, str], output_folder: Union[Path, str]) -> None:
-    gpu_available = torch.cuda.is_available()
-    reader = easyocr.Reader(['ja'], gpu=gpu_available)  # This needs to run only once to load the model into memory
-    result = reader.readtext(str(image_path))
-    print(result)
+# Define a function to overlay text on the image
+def overlay_text(image_path, text_data):
+    # Open the image
+    image = Image.open(image_path)
+    draw = ImageDraw.Draw(image)
+    
+    # Load a font
+    font = ImageFont.load_default()
 
-    # Extract bounding box coordinates from the result
-    bounding_boxes = [(result_entry[0][0][0], result_entry[0][0][1], result_entry[0][2][0], result_entry[0][2][1])
-                      for result_entry in
-                      result]
+    # Overlay translated text onto the image
+    for bbox, original_text, translated_text in text_data:
+        # Extract coordinates from bounding box
+        x_min, y_min, x_max, y_max = bbox
+
+        # Find the rgb pixel value within the bbox area and determine the average colour
+        pixel_values = list(image.getdata())
+        pixel_values = pixel_values[x_min:x_max, y_min:y_max]
+        average_color = pixel_values.mean(axis=0)
+        # Draw the translated text
+        draw.text((x_min, y_min), translated_text, fill=average_color, font=font)
+
+    # Save or return the modified image
+    image.save(image_path)
+    return image
+
+
+def text_inference(image_path: Path, output_folder: Path=None, 
+                   language_code: list[str]=['ja'], annotate=True) -> list[tuple[str, float]]:
+    gpu_available = torch.cuda.is_available()
+    reader = easyocr.Reader(language_code, gpu=gpu_available)
+    result = reader.readtext(image=str(image_path), paragraph=True, rotation_info=[90])
+    bounding_boxes_list = []
+
+    # Process the result
+    for result_entry in result:
+        print(result_entry)
+        x1, y1, = result_entry[0][0][0], result_entry[0][0][1]
+        x2, y2 = result_entry[0][2][0], result_entry[0][2][1]
+        bounding_boxes_list.append((x1, y1, x2, y2))
 
     # Draw bounding boxes on the image
+    if output_folder is None:
+        output_folder = image_path.parent
     output_image_path = output_folder / f"annotated_{image_path.name}"
-    draw_bounding_boxes(image_path, bounding_boxes, output_image_path)
-    print(f"Bounding boxes drawn on: {output_image_path}")
+
+    if annotate:
+        draw_bounding_boxes(image_path, bounding_boxes_list, output_image_path)
+        print(f"Bounding boxes drawn on: {output_image_path}")
+
+    return result
 
 if __name__ == "__main__":
     current_directory = Path.cwd()

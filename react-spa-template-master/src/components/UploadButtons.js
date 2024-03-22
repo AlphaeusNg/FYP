@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import Stack from '@mui/material/Stack';
 import axios from 'axios';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -12,20 +10,23 @@ const Input = styled('input')({
 });
 
 const UploadButtons = ({ onUploadComplete }) => {
-  debugger;
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false); // Track upload state
 
   const handleFileUpload = (event) => {
-    console.log('handleFileUpload function called');
     const files = event.target.files;
 
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
-      formData.append('file', files[i]);  // Use the same key 'file' for each file
+      formData.append('file', files[i]);
     }
+
+    // Set uploading state to true when uploading starts
+    setUploading(true);
 
     axios.post('http://127.0.0.1:5000/upload', formData, {
       onUploadProgress: (progressEvent) => {
+        console.log('Upload progress:', percentCompleted);
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         setUploadProgress(percentCompleted);
       },
@@ -38,9 +39,12 @@ const UploadButtons = ({ onUploadComplete }) => {
       .catch(error => {
         console.error('Upload failed. Error:', error);
         // handle error here
+      })
+      .finally(() => {
+        // Reset upload progress and uploading state when upload completes
+        setUploadProgress(0);
+        setUploading(false);
       });
-
-      console.log('File upload finished'); // Log after axios.post request
   };
 
   return (
@@ -51,15 +55,9 @@ const UploadButtons = ({ onUploadComplete }) => {
           Upload
         </Button>
       </label>
-      {/* <label htmlFor="icon-button-file">
-        <Input accept="image/*" id="icon-button-file" type="file" onChange={handleFileUpload} />
-        <IconButton color="primary" aria-label="upload picture" component="span">
-          <PhotoCamera />
-        </IconButton>
-      </label> */}
 
-      {/* Include the progress bar where you want it to appear */}
-      <LinearProgress variant="determinate" value={uploadProgress} />
+      {/* Conditionally render the LinearProgress component */}
+      {uploading && <LinearProgress variant="determinate" value={uploadProgress} />}
     </Stack>
   );
 };
