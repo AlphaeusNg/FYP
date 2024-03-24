@@ -1,71 +1,77 @@
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import UploadButtons from '../components/UploadButtons';
-import FileUpload from '../components/FileUpload'; // Import the FileUpload component
+import axios from 'axios'; // Import axios for making HTTP requests
+import config from '../config';
+// import FileUpload from '../components/FileUpload'; // Import the FileUpload component
 
 const HomePageStyle = css`
   h1 {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: 600;
     text-align: center;
+    margin-bottom: 40px; /* Add some margin at the bottom */
+  }
+
+  .introduction {
+    font-size: 2rem; /* Decrease the font size for introduction */
+    text-align: center;
+    margin-bottom: 15px; /* Add some margin at the bottom */
   }
 
   .description {
     margin: 20px 0;
     text-align: center;
+    font-size: 1.2rem; /* Adjust font size for description */
+    line-height: 1.5; /* Increase line height for better readability */
+  }
+
+  .language-selection {
+    margin: 10px 0;
+    text-align: left;
+    font-size: 1.1rem; /* Adjust font size for language selection */
   }
 
   .instructions {
     margin: 30px 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
   }
 
-  .footer {
-    margin-top: 40px;
-    text-align: center;
+  .instructions ol {
+    margin-left: 20px; /* Indent the ordered list */
   }
-  rect.btn {
-    stroke: #fff;
-    fill: #fff;
-    fill-opacity: 0;
-    stroke-opacity: 0;
+
+  .uploaded-image {
+    margin-top: 30px; /* Add some margin at the top */
   }
 `;
 
 const HomePage = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default language: English
-  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // State to store uploaded image URL
-
-  // Callback function to handle uploaded image data
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+  
   const handleUploadComplete = (imageUrl) => {
-    // Perform further processing with the uploaded image data (e.g., OCR, translation)
-    console.log('Uploaded image URL:', imageUrl);
-    // Update the state with the uploaded image URL
     setUploadedImageUrl(imageUrl);
-    // Add your logic for further processing here
   };
 
-  // Function to handle language selection
   const handleLanguageChange = (event) => {
     setSelectedLanguage(event.target.value);
-  };
-
-  // Function to handle selected files from FileUpload component
-  const handleFilesSelected = (files) => {
-    // Process the selected files here (e.g., recursively process images)
-    console.log('Selected files:', files);
   };
 
   return (
     <div css={[HomePageStyle]}>
       <h1 className="title">Image Translator App</h1>
 
+      <h2 className="introduction">Welcome!</h2>
+
       <div className="description">
-        <p>Welcome to the Image Translator App! Upload an image, perform OCR, translate text, and view the results.</p>
+        <p>Upload as many images as you want to be translated.</p>
       </div>
 
       {/* Language Selection Dropdown */}
       <div className="language-selection">
-        <label htmlFor="language-select">Language to translate into: </label>
+        <label htmlFor="language-select">Select language to translate into: </label>
         <select id="language-select" value={selectedLanguage} onChange={handleLanguageChange}>
           <option value="en">English</option>
           <option value="zh">Chinese</option>
@@ -83,10 +89,9 @@ const HomePage = () => {
       <div className="instructions">
         <h2>Instructions:</h2>
         <ol>
-          <li>1. Click the "Upload Image" button to select an image.</li>
-          <li>2. Perform OCR to extract text from the image.</li>
-          <li>3. Translate the extracted text using the selected language.</li>
-          <li>4. View the translated text overlaid on the image.</li>
+          <li>1. Choose the language to be translated into.</li>
+          <li>2. Click the "Upload" button to select your images.</li>
+          <li>3. Receive the translated images and enjoy them!</li>
         </ol>
       </div>
 

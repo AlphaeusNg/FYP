@@ -1,8 +1,12 @@
 # Final Year Project - Image Translation App
 
 An image translator app that auto-translates foreign language images into a language of your choice.
-1) Upload the image
-2) App identifies the text and overlays the image
+1) Upload your image
+2) EasyOCR performs text localisation
+3) Use OpenAI's api to translate
+4) Use Image to cover bbox coordinates and dynamically overlays with text
+5) Sends back images in a zipped file to client.
+6) Wala! Image translated!
 
 ## Getting started
 
@@ -42,15 +46,27 @@ Navigate to the `react-spa-template-master` folder
 Follow the `README.md` instructions inside to setup.
 
 #### Setting up Flask API
+
+Setup Flask environment variable inside Windows PowerShell
+```bash
+$env:FLASK_APP = "flask_server.app"
+```
+
+Check with this:
+```bash
+echo $env:FLASK_APP
+```
+
 Activate the virtual environment and run it
 ```bash
 .venv\Scripts\activate
-python app.py
+cd flask_server
+flask run
 ```
 
 You may need to enable cross-origin requests between your React app and Flask API. Modify the `origins` to configure for your local production address.
 ```python
-CORS(app, origins=['https://localhost:3000', 'https://{insert your hostname}}'])
+CORS(app, origins=['https://localhost:5000', 'https://{insert your hostname}}'])
 ```
 
 Install `mkcert` with this [guide](https://github.com/FiloSottile/mkcert).

@@ -56,7 +56,7 @@ const Header = () => {
 
   return (
     <header css={[headerStyle]}>
-      <Link to="/" replace={pathname === '/'}>
+      <Link to="https://www.ntu.edu.sg/" target="_blank" replace={pathname === '/'}>
         <LogoIcon /> ntu
       </Link>
 

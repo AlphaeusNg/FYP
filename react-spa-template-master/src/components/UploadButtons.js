@@ -4,14 +4,15 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import axios from 'axios';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import config from '../config'; // Import the config file
 
 const Input = styled('input')({
   display: 'none',
 });
 
-const UploadButtons = ({ onUploadComplete }) => {
+const UploadButtons = ({ onUploadComplete, selectedLanguage }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploading, setUploading] = useState(false); // Track upload state
+  const [error, setError] = useState(null); // State to hold error information
 
   const handleFileUpload = (event) => {
     const files = event.target.files;
@@ -20,30 +21,63 @@ const UploadButtons = ({ onUploadComplete }) => {
     for (let i = 0; i < files.length; i++) {
       formData.append('file', files[i]);
     }
+    
+    formData.append('language', selectedLanguage);
 
-    // Set uploading state to true when uploading starts
-    setUploading(true);
-
-    axios.post('http://127.0.0.1:5000/upload', formData, {
+    axios.post(`${config.development.apiUrl}/upload`, formData, {
       onUploadProgress: (progressEvent) => {
-        console.log('Upload progress:', percentCompleted);
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         setUploadProgress(percentCompleted);
       },
     })
       .then(response => {
-        console.log('Upload successful. Response:', response.data);
-        // Call the onUploadComplete callback with the uploaded image data
         onUploadComplete(response.data.imageUrl);
+        handleProcessImages();
       })
       .catch(error => {
         console.error('Upload failed. Error:', error);
-        // handle error here
+        setError('Failed to upload. Please try again.'); // Set error state with a message
       })
       .finally(() => {
-        // Reset upload progress and uploading state when upload completes
         setUploadProgress(0);
-        setUploading(false);
+      });
+  };
+
+  const handleProcessImages = () => {
+    // Assuming the server returns the zip file directly as a downloadable attachment
+    axios({
+      method: 'GET',
+      url: `${config.development.apiUrl}/downloadZip`,
+      responseType: 'blob', // Set response type to 'blob' to handle binary data
+    })
+      .then(response => {
+        // Create a blob URL for the zip file
+        const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+  
+        // Create an anchor element to trigger download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = 'translated_images.zip';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+  
+        // Clean up the blob URL and remove the anchor element
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(downloadLink);
+
+        // Send a command to the server to delete the files
+        axios.post(`${config.development.apiUrl}/deleteFiles`)
+        .then(response => {
+          console.log('Download files successful');
+        })
+        .catch(error => {
+          console.error('Error sending download successful to server:', error);
+          // Handle error
+        });
+      })
+      .catch(error => {
+        console.error('Error downloading zip file:', error);
+        // Handle error
       });
   };
 
@@ -56,8 +90,10 @@ const UploadButtons = ({ onUploadComplete }) => {
         </Button>
       </label>
 
-      {/* Conditionally render the LinearProgress component */}
-      {uploading && <LinearProgress variant="determinate" value={uploadProgress} />}
+      {uploadProgress && <LinearProgress variant="determinate" value={uploadProgress} />}
+
+      {/* Display error message if error state is set */}
+      {error && <div>Error: {error}</div>}
     </Stack>
   );
 };
