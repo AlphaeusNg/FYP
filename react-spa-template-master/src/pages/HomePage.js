@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import UploadButtons from '../components/UploadButtons';
-import axios from 'axios'; // Import axios for making HTTP requests
-import config from '../config';
-// import FileUpload from '../components/FileUpload'; // Import the FileUpload component
 
 const HomePageStyle = css`
   h1 {
@@ -48,15 +45,19 @@ const HomePageStyle = css`
 `;
 
 const HomePage = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedTranslateToLanguage, setSelectedTranslateToLanguage] = useState('English');
+  const [selectedOriginalLanguage, setSelectedOriginalLanguage] = useState('Japanese'); // State for the original language
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   
   const handleUploadComplete = (imageUrl) => {
     setUploadedImageUrl(imageUrl);
   };
 
-  const handleLanguageChange = (event) => {
-    setSelectedLanguage(event.target.value);
+  const handleTranslateToLanguageChange = (event) => {
+    setSelectedTranslateToLanguage(event.target.value);
+  };
+  const handleOriginalLanguageChange = (event) => { // Event handler for original language dropdown
+    setSelectedOriginalLanguage(event.target.value);
   };
 
   return (
@@ -69,19 +70,36 @@ const HomePage = () => {
         <p>Upload as many images as you want to be translated.</p>
       </div>
 
+      {/* Original Language Selection Dropdown */}
+      <div className="language-selection">
+        <label htmlFor="original-language-select">Select original language: </label>
+        <select id="original-language-select" value={selectedOriginalLanguage} onChange={handleOriginalLanguageChange}>
+          <option value="English">English</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Spanish">Spanish</option>
+          <option value="Japanese">Japanese</option>
+          <option value="Thai">Thai</option>
+          <option value="French">French</option>
+          <option value="German">German</option>
+          <option value="Italian">Italian</option>
+          <option value="Portuguese">Portuguese</option>
+          {/* Add more options as needed */}
+        </select>
+      </div>
+
       {/* Language Selection Dropdown */}
       <div className="language-selection">
         <label htmlFor="language-select">Select language to translate into: </label>
-        <select id="language-select" value={selectedLanguage} onChange={handleLanguageChange}>
-          <option value="en">English</option>
-          <option value="zh">Chinese</option>
-          <option value="es">Spanish</option>
-          <option value="ja">Japanese</option>
-          <option value="th">Thai</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="it">Italian</option>
-          <option value="pt">Portuguese</option>
+        <select id="language-select" value={selectedTranslateToLanguage} onChange={handleTranslateToLanguageChange}>
+          <option value="English">English</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Spanish">Spanish</option>
+          <option value="Japanese">Japanese</option>
+          <option value="Thai">Thai</option>
+          <option value="French">French</option>
+          <option value="German">German</option>
+          <option value="Italian">Italian</option>
+          <option value="Portuguese">Portuguese</option>
           {/* Add more language options as needed */}
         </select>
       </div>
@@ -89,9 +107,10 @@ const HomePage = () => {
       <div className="instructions">
         <h2>Instructions:</h2>
         <ol>
-          <li>1. Choose the language to be translated into.</li>
-          <li>2. Click the "Upload" button to select your images.</li>
-          <li>3. Receive the translated images and enjoy them!</li>
+          <li>1. Choose the original language found in the image.</li>
+          <li>2. Choose the language to be translated into.</li>
+          <li>3. Click the "Upload" button to select your images.</li>
+          <li>4. Receive the translated images and enjoy them!</li>
         </ol>
       </div>
 
@@ -103,11 +122,12 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* Add the FileUpload component */}
-      {/* <FileUpload onFilesSelected={handleFilesSelected} /> */}
-
-      {/* Pass the onUploadComplete callback and selectedLanguage to the UploadButtons component */}
-      <UploadButtons onUploadComplete={handleUploadComplete} selectedLanguage={selectedLanguage} />
+      {/* Pass the onUploadComplete callback and selectedTranslateToLanguage to the UploadButtons component */}
+      <UploadButtons 
+        onUploadComplete={handleUploadComplete} 
+        selectedTranslateToLanguage={selectedTranslateToLanguage} 
+        selectedOriginalLanguage={selectedOriginalLanguage} // Pass the selected original language
+      />
 
       {/* Add more sections or components as needed */}
     </div>

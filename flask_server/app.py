@@ -5,7 +5,9 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from pathlib import Path
+import os
 
+os.chdir(os.path.dirname(__file__))
 app = Flask(__name__)
 
 # Configuration path 
@@ -32,7 +34,8 @@ def process_images():
     
     files = request.files.getlist('file')
     uploaded_files = []
-    language = request.form.get('language')
+    translate_to_language = request.form.get('translate_to_language')
+    original_language = request.form.get('original_language')
     file_folder_paths = []
     processed_images = []
 
@@ -48,7 +51,7 @@ def process_images():
     
     for file in file_folder_paths:
         image_file = image_object(image_path=file)
-        image_file.process_image(language=language)
+        image_file.process_image(original_language=original_language, translated_language=translate_to_language)
         processed_image_path = Path(app.config['PROCESSED_FOLDER']) / file.name
         image_file.save_image(processed_image_path)
         processed_images.append(processed_image_path)
@@ -101,4 +104,4 @@ def delete_files():
         return jsonify({'error': str(e)})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="")
+    app.run(debug=False, host="")

@@ -2,6 +2,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import easyocr
 import torch
+import math
 
 
 def draw_bounding_boxes(image_path, bounding_boxes, output_path):
@@ -97,11 +98,31 @@ def overlay_text(image_path, text_data):
         bbox_width = xmax - xmin
         bbox_height = ymax - ymin
         text_length = len(translated_text)
-        font_size = max(min(bbox_width, bbox_height) * 1/text_length, 16)  # 16 is a minimum font size that's still readable
+        sqrt_text_length = 2/math.sqrt(text_length)
+        font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 16)  # 16 is a minimum font size that's still readable
         font = ImageFont.truetype("arial.ttf", size=font_size)
 
         # Draw the translated text on top of the filled rectangle
-        draw.text((xmin, ymin), translated_text, fill=text_fill_color, font=font)  # You can adjust the text color as needed
+        # Split text into multiple lines if it exceeds the bounding box width
+        text_lines = []
+        line = ""
+        for word in translated_text.split():
+            # Check if adding the next word exceeds the bounding box width
+            if draw.textlength(line + word, font=font) <= bbox_width:
+                line += word + " "
+            else:
+                text_lines.append(line.strip())
+                line = word + " "
+        text_lines.append(line.strip())
+
+        # Draw the text on multiple lines within the bounding box
+        y_offset = ymin
+        text_height = font_size
+        for line in text_lines:
+            # Draw the text on the image
+            draw.text((xmin, y_offset), line, fill=text_fill_color, font=font)
+            # Move to the next line
+            y_offset += text_height
 
     # Return the modified image
     return image
@@ -140,7 +161,8 @@ if __name__ == "__main__":
     folder_name = Path(r"AisazuNihaIrarenai")
 
     full_folder_dir = current_directory / folder_dir / folder_name
-    output_folder = current_directory / "images" / "output" / "easyocr" / folder_name.mkdir(exist_ok=True)
+    output_folder = current_directory / "images" / "output" / "easyocr" / folder_name
+    output_folder.mkdir(exist_ok=True)
 
     if full_folder_dir.is_dir():
         for count, file in enumerate(os.listdir(full_folder_dir)):

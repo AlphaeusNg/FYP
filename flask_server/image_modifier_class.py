@@ -20,10 +20,10 @@ class image_object:
         else:
             raise ValueError("No image or image path provided for OCR.")
 
-    def perform_translation(self, translation_language: str="en"):
+    def perform_translation(self, original_language: str="English", translated_language: str="Chinese"):
 
         for i, (bbox, text) in enumerate(self.localised_text):
-            translated_text = translate.translate_language(text=text, language=translation_language, still_in_development=True)
+            translated_text = translate.translate_language(text=text, original_language=original_language, translated_language=translated_language, development_mode=False) #TODO
             self.localised_text[i] = (bbox, text, translated_text)
             
 
@@ -31,9 +31,9 @@ class image_object:
         # Overlay translated text onto the image
         self.image = easy_ocr.overlay_text(self.image_path, self.localised_text)
     
-    def process_image(self, language: str="en"):
+    def process_image(self, original_language: str="English", translated_language: str="Chinese"):
         self.perform_ocr()
-        self.perform_translation(translation_language=language)
+        self.perform_translation(original_language=original_language, translated_language=translated_language)
         self.overlay_text()
     
     def save_image(self, output_path: Path):
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # file_dir = "Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma"
     # file_name = "Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma-04.png"
     file_dir = "AisazuNihaIrarenai"
-    folder_dir = current_directory / "images" / file_dir
+    folder_dir = current_directory / Path("images\Manga109_released_2023_12_07\images") / file_dir
     # image_path = current_directory / "images" / file_dir / file_name
     output_folder = current_directory / "images" / "output" / "easyocr" / file_dir
     os.makedirs(output_folder, exist_ok=True)
@@ -55,6 +55,6 @@ if __name__ == "__main__":
     for count, file in enumerate(os.listdir(folder_dir)):
         file_path = folder_dir / file
         image = image_object(file_path)
-        image.process_image()
+        image.process_image(original_language="Japanese", translated_language="English")
         image.save_image(output_folder / f"translated_image_{count}.png")
         print("Text overlayed on image.")

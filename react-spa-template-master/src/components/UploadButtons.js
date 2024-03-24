@@ -10,7 +10,7 @@ const Input = styled('input')({
   display: 'none',
 });
 
-const UploadButtons = ({ onUploadComplete, selectedLanguage }) => {
+const UploadButtons = ({ onUploadComplete, selectedTranslateToLanguage, selectedOriginalLanguage }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState(null); // State to hold error information
 
@@ -22,7 +22,8 @@ const UploadButtons = ({ onUploadComplete, selectedLanguage }) => {
       formData.append('file', files[i]);
     }
     
-    formData.append('language', selectedLanguage);
+    formData.append('translate_to_language', selectedTranslateToLanguage);
+    formData.append('original_language', selectedOriginalLanguage);
 
     axios.post(`${config.development.apiUrl}/upload`, formData, {
       onUploadProgress: (progressEvent) => {
@@ -66,14 +67,14 @@ const UploadButtons = ({ onUploadComplete, selectedLanguage }) => {
         document.body.removeChild(downloadLink);
 
         // Send a command to the server to delete the files
-        axios.post(`${config.development.apiUrl}/deleteFiles`)
-        .then(response => {
-          console.log('Download files successful');
-        })
-        .catch(error => {
-          console.error('Error sending download successful to server:', error);
-          // Handle error
-        });
+        // axios.post(`${config.development.apiUrl}/deleteFiles`)
+        // .then(response => {
+        //   console.log('Download files successful');
+        // })
+        // .catch(error => {
+        //   console.error('Error sending download successful to server:', error);
+        //   // Handle error
+        // });
       })
       .catch(error => {
         console.error('Error downloading zip file:', error);
