@@ -67,12 +67,12 @@ def translate_language(text, original_language: str="English", translated_langua
         return "test 420"
     
     SYSTEM_CONTENT = f"""Task Description:
-I need your assistance as a translator, spelling corrector, and text improver. 
-I will provide texts in {original_language} extracted from Optical Character Recognition (OCR), and I need them translated into {translated_language}. 
-Please consider potential OCR errors and provide the corrected and improved translation. 
-If the input is unclear or nonsensical, make a contextual guess to produce a meaningful output. 
-Only provide the corrected and improved translated text as the output, without any additional explanations.
-"""
+    I need your assistance as a translator, spelling corrector, and text improver. 
+    I will provide texts in {original_language} extracted from Optical Character Recognition (OCR), and I need them translated into {translated_language}. 
+    Please consider potential OCR errors and provide the corrected and improved translation. 
+    If the input is unclear or nonsensical, make a contextual guess to produce a meaningful output. 
+    ONLY provide the corrected and improved translated text as the output, you MUST NOT have any additional explanations.
+    """
     # Remove \n and extra spaces from the prompt
     SYSTEM_CONTENT = ' '.join(SYSTEM_CONTENT.split())
     # Define the prompt for translation

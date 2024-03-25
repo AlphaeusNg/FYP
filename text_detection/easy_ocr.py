@@ -6,18 +6,25 @@ import math
 
 
 def draw_bounding_boxes(image_path, bounding_boxes, output_path):
-    image = Image.open(image_path)
+    # Open image in RGBA mode
+    if image_path.suffix == ".png":
+        image = Image.open(image_path).convert("RGBA")
+    else:
+        image = Image.open(image_path)
+    # Create a drawing context
     draw = ImageDraw.Draw(image)
 
+    # Draw bounding boxes
     for box in bounding_boxes:
         xmin, ymin, xmax, ymax = box
-        # check if xmin < xmax and ymin < ymax
+        # Check if xmin < xmax and ymin < ymax
         if xmin > xmax:
             xmin, xmax = xmax, xmin
         if ymin > ymax:
             ymin, ymax = ymax, ymin
-        draw.rectangle([xmin, ymin, xmax, ymax], outline="red", width=2)
+        draw.rectangle([xmin, ymin, xmax, ymax], outline=(255, 0, 0), width=2)  # Use red color outline
 
+    # Save the modified image
     image.save(output_path)
 
 
@@ -65,14 +72,26 @@ def blurred_background_color(image, bbox):
     
 
 # Define a function to overlay text on the image
-def overlay_text(image_path, text_data):
+def overlay_text(image_path, text_data, lang_code):
     # Load the original image
-    original_image = Image.open(image_path)
+    if image_path.suffix == ".png":
+        original_image = Image.open(image_path).convert("RGBA")
+    else:
+        original_image = Image.open(image_path)
 
     # Create a copy of the original image for modification
     image = original_image.copy()
     draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default()  # You can adjust the font as needed
+    if lang_code == "Chinese":
+        font_name = "simsun.ttc"
+    elif lang_code == "Japanese":
+        font_name = "msmincho.ttc"
+    elif lang_code == "Korean":
+        font_name = "malgun.ttf"
+    elif lang_code == "Thai":
+        font_name = "angsana.ttc"        
+    else:
+        font_name = "arial.ttf"
 
     # Iterate over each bounding box and extract the mean RGB values
     for bbox, _, translated_text in text_data:
@@ -98,21 +117,34 @@ def overlay_text(image_path, text_data):
         bbox_width = xmax - xmin
         bbox_height = ymax - ymin
         text_length = len(translated_text)
-        sqrt_text_length = 2/math.sqrt(text_length)
-        font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 16)  # 16 is a minimum font size that's still readable
-        font = ImageFont.truetype("arial.ttf", size=font_size)
-
+        if lang_code == "Chinese":
+            sqrt_text_length = 1/math.sqrt(text_length)
+            font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 30)  # 30 is a minimum font size that's still readable
+        else:
+            sqrt_text_length = 2/math.sqrt(text_length)
+            font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 16)  # 16 is a minimum font size that's still readable
+        
+        font = ImageFont.truetype(font_name, font_size)
         # Draw the translated text on top of the filled rectangle
         # Split text into multiple lines if it exceeds the bounding box width
         text_lines = []
         line = ""
-        for word in translated_text.split():
-            # Check if adding the next word exceeds the bounding box width
-            if draw.textlength(line + word, font=font) <= bbox_width:
-                line += word + " "
-            else:
-                text_lines.append(line.strip())
-                line = word + " "
+        if lang_code == "Chinese":
+            for word in translated_text:
+                # Check if adding the next word exceeds the bounding box width
+                if draw.textlength(line + word, font=font) <= bbox_width:
+                    line += word
+                else:
+                    text_lines.append(line)
+                    line = word
+        else:
+            for word in translated_text.split():
+                # Check if adding the next word exceeds the bounding box width
+                if draw.textlength(line + word, font=font) <= bbox_width:
+                    line += word + " "
+                else:
+                    text_lines.append(line.strip())
+                    line = word + " "
         text_lines.append(line.strip())
 
         # Draw the text on multiple lines within the bounding box
@@ -132,8 +164,9 @@ def text_inference(image_path: Path, output_folder: Path=None,
                    language_code: list[str]=['ja'], annotate=True) -> list[tuple[str, float]]:
     gpu_available = torch.cuda.is_available()
     reader = easyocr.Reader(language_code, gpu=gpu_available)
-    result = reader.readtext(image=str(image_path), paragraph=True, rotation_info=[0,90], 
-                             x_ths=0.01, y_ths=0.01, slope_ths=0.01)
+    result = reader.readtext(image=str(image_path), paragraph=True)
+    # result = reader.readtext(image=str(image_path), paragraph=True, rotation_info=[0,90], 
+    #                          x_ths=0.01, y_ths=0.01, slope_ths=0.01)
     bounding_boxes_list = []
 
     # Process the result
@@ -157,20 +190,18 @@ def text_inference(image_path: Path, output_folder: Path=None,
 if __name__ == "__main__":
     import os
     current_directory = Path.cwd()
-    folder_dir = Path("images\Manga109_released_2023_12_07\images")
-    folder_name = Path(r"AisazuNihaIrarenai")
-
-    full_folder_dir = current_directory / folder_dir / folder_name
-    output_folder = current_directory / "images" / "output" / "easyocr" / folder_name
+    folder_dir = Path(r"images\Manga109_released_2023_12_07\images\AisazuNihaIrarenai\001.jpg")
+    
+    # folder_dir = Path(r"images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga")
+    # folder_name = Path(r"The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
+    # folder_dir = Path(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\FYP\FYP\images\Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma\Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma-04.png")
+    
+    full_folder_dir = current_directory / folder_dir
+    output_folder = current_directory / "images" / "output" / "easyocr" / "AisazuNihaIrarenai"
     output_folder.mkdir(exist_ok=True)
-
+    lang_code = ["ja"]
     if full_folder_dir.is_dir():
         for count, file in enumerate(os.listdir(full_folder_dir)):
-            text_inference(full_folder_dir.joinpath(file), output_folder)
+            text_inference(full_folder_dir.joinpath(file), output_folder, lang_code)
     elif full_folder_dir.is_file():
-        text_inference(full_folder_dir, output_folder)
-        
-
-    
-
-    
+        text_inference(full_folder_dir, output_folder, lang_code)

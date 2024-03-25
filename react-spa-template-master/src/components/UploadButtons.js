@@ -67,14 +67,14 @@ const UploadButtons = ({ onUploadComplete, selectedTranslateToLanguage, selected
         document.body.removeChild(downloadLink);
 
         // Send a command to the server to delete the files
-        // axios.post(`${config.development.apiUrl}/deleteFiles`)
-        // .then(response => {
-        //   console.log('Download files successful');
-        // })
-        // .catch(error => {
-        //   console.error('Error sending download successful to server:', error);
-        //   // Handle error
-        // });
+        axios.post(`${config.development.apiUrl}/deleteFiles`)
+        .then(response => {
+          console.log('Download files successful');
+        })
+        .catch(error => {
+          console.error('Error sending download successful to server:', error);
+          // Handle error
+        });
       })
       .catch(error => {
         console.error('Error downloading zip file:', error);
