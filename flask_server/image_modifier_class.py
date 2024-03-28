@@ -1,76 +1,177 @@
 from pathlib import Path
-from language_translation import translate
-from text_detection.pdf_to_png_converter import convert_pdf_to_png
-from text_detection import easy_ocr
 from PIL import Image
+from typing import List, Tuple
+from language_translation import translate
+from text_detection import easy_ocr
 
-class image_object:
+class ImageObject:
+    """
+    Represents an image object with functionalities for OCR, translation, and overlaying text.
+    """
     
-    def __init__(self, image_path: Path=None, image: Image=None, localised_text: list[str]=[], original_lang_code: str=None, translated_lang_code: str=None):
-        self.image_path = image_path if image_path is not None else None
-        self.image = Image.open(image_path) if image is None else image
-        self.localised_text = [] if localised_text is None else localised_text
-        self.original_lang_code = "en" if original_lang_code is None else original_lang_code
-        self.translated_lang_code = "zh" if translated_lang_code is None else translated_lang_code
+    def __init__(self, image_path: Path = None, image: Image = None, localised_text: Tuple[List[float], str, str] = None,
+                 original_lang_code: List[str] = None, translated_lang_code: List[str] = None):
+        """
+        Initializes an ImageObject instance.
+        
+        Args:
+            image_path (Path, optional): Path to the input image. Defaults to None.
+            image (Image, optional): PIL Image object. Defaults to None.
+            localised_text (Tuple[List[float, float, float, float], str, str], optional): Localized text extracted from the image. Defaults to None.
+            original_lang_code (List[str], optional): Language code of the original text. Defaults to None.
+            translated_lang_code (List[str], optional): Language code of the translated text. Defaults to None.
+        """
+        self.image_path = image_path
+        self.image = Image.open(image_path) if image_path else image
+        self.localised_text = localised_text if localised_text is not None else []
+        self.original_lang_code = original_lang_code
+        self.translated_lang_code = translated_lang_code
+        self.LANG_CODES_TO_NAMES = {
+            "en": "English",
+            "zh": "Chinese",
+            "ja": "Japanese",
+            "fr": "French",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "de": "German",
+            "ru": "Russian",
+        }
 
-    def perform_ocr(self, output_folder, language_code:list[str]=["en"]):
-        # Perform OCR on the provided image file
+    # Setter for image_path attribute
+    def set_image_path(self, image_path: Path) -> None:
+        if not isinstance(image_path, Path):
+            raise TypeError("image_path must be a pathlib.Path object.")
+        self.image_path = image_path
+        try:
+            self.image = Image.open(image_path)
+        except (FileNotFoundError, OSError):
+            raise ValueError("Failed to load the image. Please provide a valid image file.")
+
+    # Setter for image attribute
+    def set_image(self, image: Image) -> None:
+        if not isinstance(image, Image.Image):
+            raise TypeError("image must be a PIL Image object.")
+        self.image = image
+    
+    # Setter for localised_text attribute
+    def set_localised_text(self, localised_text: List[str]) -> None:
+        if not isinstance(localised_text, list):
+            raise TypeError("localised_text must be a list object.")
+        self.localised_text = localised_text
+    
+    # Setter for original_lang_code attribute
+    def set_original_lang_code(self, original_lang_code: List[str]) -> None:
+        if not isinstance(original_lang_code, List[str]):
+            raise TypeError("original_lang_code must be a List[str].")
+        self.original_lang_code = original_lang_code
+    
+    # Setter for translated_lang_code attribute
+    def set_translated_lang_code(self, translated_lang_code: List[str]) -> None:
+        if not isinstance(translated_lang_code, List[str]):
+            raise TypeError("translated_lang_code must be a List[str].")
+        self.translated_lang_code = translated_lang_code
+
+    def get_language_name(self, lang_code: str) -> str:
+        """
+        Get the full name of the language corresponding to the given language code.
+        
+        Args:
+            lang_code (str): Language code.
+        
+        Returns:
+            str: Full name of the language.
+        """
+        
+        return self.LANG_CODES_TO_NAMES.get(lang_code, None)
+
+    def perform_ocr(self, output_folder: Path = None, original_lang_code: List[str] = None) -> None:
+        """
+        Perform OCR on the image to extract localized text.
+        
+        Args:
+            output_folder (Path, optional): Path to save the annotated images. Defaults to None.
+            original_lang_code (List[str], optional): List of language codes for recognition. Defaults to None.
+        """
+        output_folder = output_folder or self.image_path.parent if self.image_path else None
+        original_lang_code = self.original_lang_code or ["en"]
+        
         if self.image_path:
-            self.localised_text = easy_ocr.text_inference(self.image_path, output_folder=output_folder, language_code=language_code, annotate=True)
+            self.localised_text = easy_ocr.text_inference(self.image_path, output_folder=output_folder,
+                                                          language_code=original_lang_code, annotate=True)
         elif self.image:
-            self.localised_text = easy_ocr.text_inference(self.image, output_folder=output_folder, language_code=language_code, annotate=True)
+            self.localised_text = easy_ocr.text_inference(self.image, output_folder=output_folder,
+                                                          language_code=original_lang_code, annotate=True)
         else:
             raise ValueError("No image or image path provided for OCR.")
 
-    def perform_translation(self, original_language: str="English", translated_language: str="Chinese"):
+    def perform_translation(self, original_lang_code: str = None, translated_lang_code: str = None) -> None:
+        """
+        Perform translation of localized text.
+        
+        Args:
+            original_lang_code (str, optional): Original language of the text. Defaults to None.
+            translated_lang_code (str, optional): Target language for translation. Defaults to None.
+        """
+        original_lang_code = self.original_lang_code or original_lang_code or ["en"]
+        translated_lang_code = self.translated_lang_code or translated_lang_code or ["zh"]
+
+        original_language = self.get_language_name(original_lang_code[0]) or "English"
+        translated_language = self.get_language_name(translated_lang_code[0]) or "Chinese"
+
 
         for i, (bbox, text) in enumerate(self.localised_text):
-            translated_text = translate.translate_language(text=text, original_language=original_language, translated_language=translated_language, development_mode=False) #TODO
+            translated_text = translate.translate_language(text=text, original_language=original_language,
+                                                            translated_language=translated_language)
             self.localised_text[i] = (bbox, text, translated_text)
-            
 
-    def overlay_text(self):
-        # Overlay translated text onto the image
-        self.image = easy_ocr.overlay_text(self.image_path, self.localised_text, lang_code=self.translated_lang_code)
+    def overlay_text(self, translated_lang_code:List[str] = None) -> None:
+        """
+        Overlay translated text onto the image.
+        """
+        translated_lang_code = self.translated_lang_code or translated_lang_code or ["en"]
+        self.image = easy_ocr.overlay_text(self.image_path, self.localised_text, lang_code=translated_lang_code)
+
+
+    def process_image(self, output_folder: Path = None, original_lang_code: List[str] = None,
+                      translated_lang_code: List[str] = None) -> None:
+        """
+        Process the image by performing OCR, translation, and overlaying text.
+        
+        Args:
+            output_folder (Path, optional): Path to save the annotated images. Defaults to None.
+            original_lang_code (List[str], optional): Original language of the text. If self.original_lang_code is specified, that will be used, else Defaults to None.
+            translated_lang_code (List[str], optional): Target language for translation. If self.translated_lang_code is specified, that will be used, else Defaults to None.Defaults to None.
+        """
+        output_folder = output_folder or self.image_path.parent if self.image_path else None
+        original_lang_code = original_lang_code or self.original_lang_code
+        translated_lang_code = translated_lang_code or self.translated_lang_code
+        
+        self.perform_ocr(output_folder, original_lang_code=original_lang_code)
+        self.perform_translation(original_lang_code=original_lang_code, translated_lang_code=translated_lang_code)
+        self.overlay_text(translated_lang_code=translated_lang_code)
     
-    def process_image(self, output_folder, original_language: str="English", translated_language: str="Chinese", language_code:list[str]=["en"]):
-        self.perform_ocr(output_folder, language_code=language_code)
-        self.perform_translation(original_language=original_language, translated_language=translated_language)
-        self.overlay_text()
-    
-    def save_image(self, output_path: Path):
+    def save_image(self, output_path: Path) -> Path:
+        """
+        Save the modified image.
+        
+        Args:
+            output_path (Path): Path to save the image.
+        
+        Returns:
+            Path: Path of the saved image.
+        """
         self.image.save(output_path)
         return output_path
 
 if __name__ == "__main__":
-    # Example usage
     import os
     current_directory = Path.cwd()
-    # file_dir = "Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma"
-    # file_name = "Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma-04.png"
-    # file_dir = "AisazuNihaIrarenai"
-    folder_dir = Path(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\FYP\FYP\images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
-    # folder_name = Path(r"The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
+    folder_dir = Path(r"images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
     folder_dir = current_directory / folder_dir
-    # image_path = current_directory / "images" / file_dir / file_name
     output_folder = current_directory / "images" / "output" / "easyocr" / folder_dir.name
     os.makedirs(output_folder, exist_ok=True)
 
-    if folder_dir.is_dir():
-        for count, file in enumerate(os.listdir(folder_dir)):
-            file_path = folder_dir / file
-            image = image_object(file_path, original_lang_code="English", translated_lang_code="Chinese")
-            image.process_image(output_folder=output_folder, 
-                                original_language="English", 
-                                translated_language="Chinese", 
-                                language_code=["en"])
-            image.save_image(output_folder / f"translated_image_{count}.png")
-            print("Text overlayed on image.")
-    else:
-        image = image_object(folder_dir, original_lang_code="English", translated_lang_code="Chinese")
-        image.process_image(output_folder=output_folder, 
-                            original_language="English", 
-                            translated_language="Chinese", 
-                            language_code=["en"])
-        image.save_image(output_folder / f"translated_image_{99}.png")
-        print("Text overlayed on image.")
+    image = ImageObject(image_path=folder_dir, original_lang_code=["en"], translated_lang_code=["zh"])
+    image.process_image()
+    image.save_image(output_folder / f"translated_image_{99}.png")
+    print("Text overlayed on image.")

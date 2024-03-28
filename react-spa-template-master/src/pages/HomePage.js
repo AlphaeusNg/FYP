@@ -45,8 +45,8 @@ const HomePageStyle = css`
 `;
 
 const HomePage = () => {
-  const [selectedTranslateToLanguage, setSelectedTranslateToLanguage] = useState('English');
-  const [selectedOriginalLanguage, setSelectedOriginalLanguage] = useState('Japanese'); // State for the original language
+  const [selectedTranslateToLanguage, setSelectedTranslateToLanguage] = useState('zh');
+  const [selectedOriginalLanguage, setSelectedOriginalLanguage] = useState('en'); // State for the original language
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   
   const handleUploadComplete = (imageUrl) => {
@@ -74,15 +74,15 @@ const HomePage = () => {
       <div className="language-selection">
         <label htmlFor="original-language-select">Select original language: </label>
         <select id="original-language-select" value={selectedOriginalLanguage} onChange={handleOriginalLanguageChange}>
-          <option value="English">English</option>
-          <option value="Chinese">Chinese</option>
-          <option value="Spanish">Spanish</option>
-          <option value="Japanese">Japanese</option>
-          <option value="Thai">Thai</option>
-          <option value="French">French</option>
-          <option value="German">German</option>
-          <option value="Italian">Italian</option>
-          <option value="Portuguese">Portuguese</option>
+          <option value="en">English</option>
+          <option value="zh">Chinese</option>
+          <option value="sp">Spanish</option>
+          <option value="ja">Japanese</option>
+          <option value="th">Thai</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
           {/* Add more options as needed */}
         </select>
       </div>
@@ -91,15 +91,15 @@ const HomePage = () => {
       <div className="language-selection">
         <label htmlFor="language-select">Select language to translate into: </label>
         <select id="language-select" value={selectedTranslateToLanguage} onChange={handleTranslateToLanguageChange}>
-          <option value="English">English</option>
-          <option value="Chinese">Chinese</option>
-          <option value="Spanish">Spanish</option>
-          <option value="Japanese">Japanese</option>
-          <option value="Thai">Thai</option>
-          <option value="French">French</option>
-          <option value="German">German</option>
-          <option value="Italian">Italian</option>
-          <option value="Portuguese">Portuguese</option>
+          <option value="en">English</option>
+          <option value="zh">Chinese</option>
+          <option value="sp">Spanish</option>
+          <option value="ja">Japanese</option>
+          <option value="th">Thai</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
           {/* Add more language options as needed */}
         </select>
       </div>

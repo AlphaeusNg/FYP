@@ -11,7 +11,7 @@ const Input = styled('input')({
 });
 
 const UploadButtons = ({ onUploadComplete, selectedTranslateToLanguage, selectedOriginalLanguage }) => {
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState();
   const [error, setError] = useState(null); // State to hold error information
 
   const handleFileUpload = (event) => {
@@ -22,8 +22,8 @@ const UploadButtons = ({ onUploadComplete, selectedTranslateToLanguage, selected
       formData.append('file', files[i]);
     }
     
-    formData.append('translate_to_language', selectedTranslateToLanguage);
-    formData.append('original_language', selectedOriginalLanguage);
+    formData.append('translated_lang_code', selectedTranslateToLanguage);
+    formData.append('original_lang_code', selectedOriginalLanguage);
 
     axios.post(`${config.development.apiUrl}/upload`, formData, {
       onUploadProgress: (progressEvent) => {

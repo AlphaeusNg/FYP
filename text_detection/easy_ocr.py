@@ -1,78 +1,112 @@
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from io import BytesIO
 import easyocr
 import torch
 import math
+from typing import Tuple, List
 
+def draw_bounding_boxes(image_path: Path, bounding_boxes: List[Tuple[int, int, int, int]], output_path: Path) -> None:
+    """
+    Draw bounding boxes on the given image and save the modified image.
 
-def draw_bounding_boxes(image_path, bounding_boxes, output_path):
-    # Open image in RGBA mode
+    Args:
+        image_path (Path): Path to the input image.
+        bounding_boxes (List[Tuple[int, int, int, int]]): List of bounding boxes.
+        output_path (Path): Path to save the modified image.
+    """
+    # Open image
     if image_path.suffix == ".png":
         image = Image.open(image_path).convert("RGBA")
     else:
         image = Image.open(image_path)
+
     # Create a drawing context
     draw = ImageDraw.Draw(image)
 
     # Draw bounding boxes
     for box in bounding_boxes:
         xmin, ymin, xmax, ymax = box
-        # Check if xmin < xmax and ymin < ymax
+        # Ensure xmin < xmax and ymin < ymax
         if xmin > xmax:
             xmin, xmax = xmax, xmin
         if ymin > ymax:
             ymin, ymax = ymax, ymin
-        draw.rectangle([xmin, ymin, xmax, ymax], outline=(255, 0, 0), width=2)  # Use red color outline
+        draw.rectangle([xmin, ymin, xmax, ymax], outline=(255, 0, 0), width=2)  # Red color outline
 
     # Save the modified image
     image.save(output_path)
 
+def blurred_background_color(image: Image, bbox: Tuple[Tuple[int, int], Tuple[int, int]]) -> Tuple[int, int, int]:
+    """
+    Calculate the average color of the blurred background within the specified bounding box.
 
-def blurred_background_color(image, bbox):
-    xmin, ymin = bbox[0][0], bbox[0][1]
-    xmax, ymax = bbox[2][0], bbox[2][1]
+    Args:
+        image (Image): Input image.
+        bbox (Tuple[Tuple[int, int], Tuple[int, int]]): Bounding box coordinates.
 
+    Returns:
+        Tuple[int, int, int]: Average RGB color of the blurred background.
+    """
     # Extract pixels within the specified range
-    region = image.crop((xmin, ymin, xmax, ymax))
+    region = image.crop((bbox[0][0], bbox[0][1], bbox[2][0], bbox[2][1]))
 
-    # Convert the region to RGB mode
-    region_rgb = region.convert("RGB")
+    # Convert region to RGB mode and apply blur filter
+    blurred_region = region.convert("RGB").filter(ImageFilter.GaussianBlur(radius=5))
 
-    # Apply a blur filter to the region
-    blurred_region = region_rgb.filter(ImageFilter.GaussianBlur(radius=5))
-
-    # Convert the blurred region to RGB mode
-    blurred_rgb_region = blurred_region.convert("RGB")
-
-    # Calculate the sum of RGB values for each pixel in the blurred region
-    total_r, total_g, total_b = 0, 0, 0
-    num_pixels = 0
-    for x in range(blurred_rgb_region.width):
-        for y in range(blurred_rgb_region.height):
-            r, g, b = blurred_rgb_region.getpixel((x, y))
-            # Exclude black pixels from the calculation
-            if r > 0 or g > 0 or b > 0:
+    # Calculate average color of the blurred region
+    total_r, total_g, total_b, num_pixels = 0, 0, 0, 0
+    for x in range(blurred_region.width):
+        for y in range(blurred_region.height):
+            r, g, b = blurred_region.getpixel((x, y))
+            if r > 0 or g > 0 or b > 0:  # Exclude black pixels
                 total_r += r
                 total_g += g
                 total_b += b
                 num_pixels += 1
 
-    # Calculate the average color of the blurred region
+    # Calculate average color
     if num_pixels > 0:
-        blurred_avg_color = (
-            total_r // num_pixels,
-            total_g // num_pixels,
-            total_b // num_pixels
-        )
+        return total_r // num_pixels, total_g // num_pixels, total_b // num_pixels
     else:
-        # If no non-black pixels found, return white color as fallback
-        blurred_avg_color = (255, 255, 255)
+        return 255, 255, 255  # Fallback to white color
 
-    return blurred_avg_color
+
+def convert_rgba_to_png(image: Image) -> Image:
+    """
+    Convert an RGBA image to PNG format.
+
+    Args:
+        image (Image): The input RGBA image.
+
+    Returns:
+        Image: The image converted to PNG format.
+    """
+    # Create a BytesIO object to hold the image data
+    image_buffer = BytesIO()
     
+    # Convert the image to PNG format and save it to the BytesIO buffer
+    image.save(image_buffer, format="PNG")
+    
+    # Seek to the beginning of the buffer
+    image_buffer.seek(0)
+    
+    # Open the image from the buffer and return it
+    return Image.open(image_buffer)
 
-# Define a function to overlay text on the image
-def overlay_text(image_path, text_data, lang_code):
+
+def overlay_text(image_path: Path, text_data: List[Tuple[Tuple[int, int, int, int], float, str]], lang_code: list[str]) -> Image:
+    """
+    Overlay translated text on the image.
+
+    Args:
+        image_path (Path): Path to the input image.
+        text_data (List[Tuple[Tuple[int, int, int, int], float, str]]): List of text data (bounding box, confidence, translated text).
+        lang_code (str): Language code for selecting appropriate font.
+
+    Returns:
+        Image: Image with overlaid text.
+    """
     # Load the original image
     if image_path.suffix == ".png":
         original_image = Image.open(image_path).convert("RGBA")
@@ -82,16 +116,25 @@ def overlay_text(image_path, text_data, lang_code):
     # Create a copy of the original image for modification
     image = original_image.copy()
     draw = ImageDraw.Draw(image)
-    if lang_code == "Chinese":
-        font_name = "simsun.ttc"
-    elif lang_code == "Japanese":
-        font_name = "msmincho.ttc"
-    elif lang_code == "Korean":
-        font_name = "malgun.ttf"
-    elif lang_code == "Thai":
-        font_name = "angsana.ttc"        
-    else:
-        font_name = "arial.ttf"
+
+    # Select font based on language code
+    font_names_dict = {
+        # Chinese
+        "zh": ["simsun.ttc", "simhei.ttf", "msyh.ttc"],
+        # Japanese
+        "ja": ["msmincho.ttc", "meiryo.ttc", "msgothic.ttc"],
+        # Korean
+        "ko": ["malgun.ttf", "batang.ttc", "gulim.ttc"],
+        # Thai
+        "th": ["angsana.ttc", "loma.ttf", "garuda.ttf"],
+        # Arabic
+        "ar": ["amiri.ttf", "droidnaskh-regular.ttf", "kacstbook.ttf"],
+        # Portuguese
+        "pt": ["Arial Unicode.ttf", "DejaVuSans.ttf", "NotoSans-Regular.ttf"]
+    }
+
+    # Get the font name based on the language code, defaulting to Arial.ttf if not found
+    font_name = font_names_dict.get(lang_code[0], ["arial.ttf"])[0]
 
     # Iterate over each bounding box and extract the mean RGB values
     for bbox, _, translated_text in text_data:
@@ -108,16 +151,12 @@ def overlay_text(image_path, text_data, lang_code):
 
         # Calculate the luminance (brightness) of the background color
         luminance = (0.299 * new_rgb[0] + 0.587 * new_rgb[1] + 0.114 * new_rgb[2]) / 255
-        if luminance > 0.5:
-            text_fill_color = (0, 0, 0)  # Use black text on light background
-        else:
-            text_fill_color = (255, 255, 255)  # Use white text on dark background
+        text_fill_color = (0, 0, 0) if luminance > 0.5 else (255, 255, 255)
 
         # Calculate font size based on bounding box size
-        bbox_width = xmax - xmin
-        bbox_height = ymax - ymin
+        bbox_width, bbox_height = xmax - xmin, ymax - ymin
         text_length = len(translated_text)
-        if lang_code == "Chinese":
+        if lang_code[0] == "zh":
             sqrt_text_length = 1/math.sqrt(text_length)
             font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 30)  # 30 is a minimum font size that's still readable
         else:
@@ -125,11 +164,10 @@ def overlay_text(image_path, text_data, lang_code):
             font_size = max(min(bbox_width, bbox_height) * sqrt_text_length, 16)  # 16 is a minimum font size that's still readable
         
         font = ImageFont.truetype(font_name, font_size)
-        # Draw the translated text on top of the filled rectangle
         # Split text into multiple lines if it exceeds the bounding box width
         text_lines = []
         line = ""
-        if lang_code == "Chinese":
+        if lang_code[0] == "zh":
             for word in translated_text:
                 # Check if adding the next word exceeds the bounding box width
                 if draw.textlength(line + word, font=font) <= bbox_width:
@@ -155,24 +193,29 @@ def overlay_text(image_path, text_data, lang_code):
             draw.text((xmin, y_offset), line, fill=text_fill_color, font=font)
             # Move to the next line
             y_offset += text_height
-
-    # Return the modified image
     return image
 
+def text_inference(image_path: Path, output_folder: Path = None, language_code: List[str] = ['ja'], annotate: bool = True) -> List[Tuple[str, float]]:
+    """
+    Perform text detection and recognition on the input image using EasyOCR.
 
-def text_inference(image_path: Path, output_folder: Path=None, 
-                   language_code: list[str]=['ja'], annotate=True) -> list[tuple[str, float]]:
+    Args:
+        image_path (Path): Path to the input image.
+        output_folder (Path, optional): Path to save the annotated images. Defaults to None.
+        language_code (List[str], optional): List of language codes for recognition. Defaults to ['ja'].
+        annotate (bool, optional): Whether to annotate the image with bounding boxes. Defaults to True.
+
+    Returns:
+        List[Tuple[str, float]]: A list of tuples containing the recognized text and confidence scores."""
+    
     gpu_available = torch.cuda.is_available()
     reader = easyocr.Reader(language_code, gpu=gpu_available)
     result = reader.readtext(image=str(image_path), paragraph=True)
-    # result = reader.readtext(image=str(image_path), paragraph=True, rotation_info=[0,90], 
-    #                          x_ths=0.01, y_ths=0.01, slope_ths=0.01)
     bounding_boxes_list = []
 
     # Process the result
     for result_entry in result:
-        # print(result_entry)
-        xmin, ymin, = result_entry[0][0][0], result_entry[0][0][1]
+        xmin, ymin = result_entry[0][0][0], result_entry[0][0][1]
         xmax, ymax = result_entry[0][2][0], result_entry[0][2][1]
         bounding_boxes_list.append((xmin, ymin, xmax, ymax))
 
@@ -187,19 +230,16 @@ def text_inference(image_path: Path, output_folder: Path=None,
 
     return result
 
+
 if __name__ == "__main__":
     import os
     current_directory = Path.cwd()
     folder_dir = Path(r"images\Manga109_released_2023_12_07\images\AisazuNihaIrarenai\001.jpg")
     
-    # folder_dir = Path(r"images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga")
-    # folder_name = Path(r"The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
-    # folder_dir = Path(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\FYP\FYP\images\Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma\Tsuihou Sareta Tenshou Juu Kishi wa game Chishiki de Musou Suru Chapter 64 Raw - Rawkuma-04.png")
-    
     full_folder_dir = current_directory / folder_dir
     output_folder = current_directory / "images" / "output" / "easyocr" / "AisazuNihaIrarenai"
     output_folder.mkdir(exist_ok=True)
-    lang_code = ["ja"]
+    lang_code = ["en"]
     if full_folder_dir.is_dir():
         for count, file in enumerate(os.listdir(full_folder_dir)):
             text_inference(full_folder_dir.joinpath(file), output_folder, lang_code)
