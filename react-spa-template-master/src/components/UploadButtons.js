@@ -40,7 +40,7 @@ const UploadButtons = ({ onUploadComplete, selectedTranslateToLanguage, selected
         setError('Failed to upload. Please try again.'); // Set error state with a message
       })
       .finally(() => {
-        setUploadProgress(0);
+        setUploadProgress("100% Completed");
       });
   };
 
