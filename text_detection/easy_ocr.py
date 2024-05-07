@@ -234,10 +234,9 @@ def text_inference(image_path: Path, output_folder: Path = None, language_code: 
 if __name__ == "__main__":
     import os
     current_directory = Path.cwd()
-    folder_dir = Path(r"images\Manga109_released_2023_12_07\images\AisazuNihaIrarenai\001.jpg")
-    
-    full_folder_dir = current_directory / folder_dir
-    output_folder = current_directory / "images" / "output" / "easyocr" / "AisazuNihaIrarenai"
+    full_folder_dir = Path(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\FYP\FYP\images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
+    # full_folder_dir = current_directory / folder_dir
+    output_folder = current_directory / "images" / "output" / "easyocr" / "slide"
     output_folder.mkdir(exist_ok=True)
     lang_code = ["en"]
     if full_folder_dir.is_dir():

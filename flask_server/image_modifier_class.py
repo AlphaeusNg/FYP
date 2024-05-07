@@ -166,12 +166,12 @@ class ImageObject:
 if __name__ == "__main__":
     import os
     current_directory = Path.cwd()
-    folder_dir = Path(r"images\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga\The Exiled Reincarnated Heavy Knight Is Unrivaled In Game Knowledge - Chapter 64 - Aqua manga-04.png")
-    folder_dir = current_directory / folder_dir
-    output_folder = current_directory / "images" / "output" / "easyocr" / folder_dir.name
+    folder_dir = Path(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\FYP\FYP\images\Manga109_released_2023_12_07\images\AisazuNihaIrarenai\001.jpg")
+    # folder_dir = current_directory / folder_dir
+    output_folder = current_directory / "images" / "output" / "easyocr" / "slide"
     os.makedirs(output_folder, exist_ok=True)
 
-    image = ImageObject(image_path=folder_dir, original_lang_code=["en"], translated_lang_code=["zh"])
+    image = ImageObject(image_path=folder_dir, original_lang_code=["ja"], translated_lang_code=["en"])
     image.process_image()
     image.save_image(output_folder / f"translated_image_{99}.png")
     print("Text overlayed on image.")
