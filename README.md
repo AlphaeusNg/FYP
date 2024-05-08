@@ -93,7 +93,9 @@ OPEN_AI_KEY = "YOUR_API_KEY"
 3. Verify that the file upload works and CORS headers are properly set.
 
 ## To run the app
-Once everything has been set up properly. To start the app, simply double click the `run_servers.bat` file. If that doesn't work, you can run these codes below on separate terminals.
+Once everything has been set up properly, to start the app, simply double click the `run_servers.bat` file. 
+
+If that doesn't work, you can run these codes below on separate terminals.
 
 ### Frontend React
 ```bash
