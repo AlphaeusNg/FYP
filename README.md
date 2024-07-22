@@ -115,5 +115,8 @@ flask run
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvement, please open an issue or create a pull request.
 
+## Notes
+To download a Manga image dataset for testing, please refer to the Manga109 [dataset](http://www.manga109.org/en/#). Follow the instructions provided on their website to obtain the dataset. Manga109 offers a comprehensive collection of manga images with detailed annotations, suitable for various testing and research purposes.
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
